@@ -27,6 +27,7 @@ fn try_install(
     context_module.ty::<Context>()?;
     context_module.function_meta(functions::prepare)?;
     context_module.function_meta(functions::signal_failure)?;
+    context_module.function_meta(functions::custom_hello)?;
 
     // NOTE: 1st group of query-oriented functions - without usage of prepared statements
     context_module.function_meta(functions::execute)?;

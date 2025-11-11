@@ -277,6 +277,11 @@ pub async fn signal_failure(ctx: Ref<Context>, message: Ref<str>) -> Result<(), 
 }
 
 #[rune::function(instance)]
+pub fn custom_hello(_ctx: Ref<Context>, name: Ref<str>) {
+    println!("Hello from Rust, {}", name.deref());
+}
+
+#[rune::function(instance)]
 pub async fn execute(ctx: Ref<Context>, cql: Ref<str>) -> Result<Value, CassError> {
     ctx.execute(cql.deref()).await
 }

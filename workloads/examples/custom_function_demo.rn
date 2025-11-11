@@ -1,0 +1,3 @@
+pub async fn run(ctx, i) {
+    ctx.custom_hello("Test");
+}
