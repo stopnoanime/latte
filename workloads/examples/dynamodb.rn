@@ -1,0 +1,11 @@
+pub async fn schema(ctx) {
+    ctx.dynamo_create_table("latte_test_table").await;
+    println!("Table created successfully");
+}
+
+pub async fn run(ctx, i) {
+    let id = `item_${latte::hash(i)}`;
+    
+    ctx.dynamo_put_item("latte_test_table", id, "test data value").await;
+    ctx.dynamo_get_item("latte_test_table", id).await;
+}

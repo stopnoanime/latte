@@ -4,6 +4,7 @@ use crate::scripting::bind::to_scylla_query_params;
 use crate::scripting::cass_error::{CassError, CassErrorKind};
 use crate::scripting::connect::ClusterInfo;
 use crate::stats::session::SessionStats;
+use aws_sdk_dynamodb::Client;
 use chrono::Utc;
 use itertools::enumerate;
 use once_cell::sync::Lazy;
@@ -459,6 +460,7 @@ pub struct Context {
     // NOTE: 'session' is defined as optional for being able to test methods
     // which don't 'depend on'/'use' the 'session' object.
     session: Option<Arc<Session>>,
+    pub dynamo_client: Option<Arc<aws_sdk_dynamodb::Client>>,
     page_size: u64,
     statements: HashMap<String, Arc<PreparedStatement>>,
     stats: TryLock<SessionStats>,
@@ -489,6 +491,7 @@ unsafe impl Sync for Context {}
 impl Context {
     pub fn new(
         session: Option<Session>,
+        dynamo_client: Option<Client>,
         page_size: u64,
         preferred_datacenter: String,
         preferred_rack: String,
@@ -499,6 +502,7 @@ impl Context {
         Context {
             start_time: TryLock::new(Instant::now()),
             session: session.map(Arc::new),
+            dynamo_client: dynamo_client.map(Arc::new),
             page_size,
             statements: HashMap::new(),
             stats: TryLock::new(SessionStats::new()),
@@ -523,6 +527,7 @@ impl Context {
         let deserialized: Value = rmp_serde::from_slice(&serialized)?;
         Ok(Context {
             session: self.session.clone(),
+            dynamo_client: self.dynamo_client.clone(),
             page_size: self.page_size,
             statements: self.statements.clone(),
             stats: TryLock::new(SessionStats::default()),

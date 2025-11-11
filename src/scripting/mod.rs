@@ -46,6 +46,10 @@ fn try_install(
     context_module.function_meta(functions::get_datacenters)?;
     context_module.function_meta(functions::elapsed_secs)?;
 
+    context_module.function_meta(functions::dynamo_create_table)?;
+    context_module.function_meta(functions::dynamo_put_item)?;
+    context_module.function_meta(functions::dynamo_get_item)?;
+
     let mut err_module = Module::default();
     err_module.ty::<CassError>()?;
     err_module.function_meta(CassError::string_display)?;

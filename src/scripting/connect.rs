@@ -1,6 +1,8 @@
 use crate::config::ConnectionConf;
 use crate::scripting::cass_error::{CassError, CassErrorKind};
 use crate::scripting::context::Context;
+use aws_config::BehaviorVersion;
+use aws_sdk_dynamodb::config::Credentials;
 use openssl::ssl::{SslContextBuilder, SslFiletype, SslMethod, SslVerifyMode};
 use scylla::client::session::TlsContext;
 use scylla::client::PoolSize;
@@ -66,8 +68,19 @@ pub async fn connect(conf: &ConnectionConf) -> Result<Context, CassError> {
         .build()
         .await
         .map_err(|e| CassError(CassErrorKind::FailedToConnect(conf.addresses.clone(), e)))?;
+
+    let dynamo_config = aws_config::defaults(BehaviorVersion::latest())
+        .region("us-east-1") // Region doesn't matter for local
+        .endpoint_url("http://172.17.0.2:8000")
+        .credentials_provider(Credentials::new("DUMMY", "DUMMY", None, None, "local"))
+        .load()
+        .await;
+    
+    let dynamo_client = aws_sdk_dynamodb::Client::new(&dynamo_config);
+
     Ok(Context::new(
         Some(scylla_session),
+        Some(dynamo_client),
         conf.page_size.get() as u64,
         datacenter,
         rack,

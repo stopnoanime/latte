@@ -473,3 +473,65 @@ pub async fn get_datacenters(ctx: Ref<Context>) -> Result<Vec<String>, CassError
 pub fn elapsed_secs(ctx: &Context) -> f64 {
     ctx.elapsed_secs()
 }
+
+#[rune::function(instance)]
+pub async fn dynamo_create_table(ctx: Ref<Context>, table_name: Ref<str>) {
+    let client = ctx.dynamo_client.as_ref().unwrap();
+    
+    client
+        .create_table()
+        .table_name(table_name.deref())
+        .key_schema(
+            aws_sdk_dynamodb::types::KeySchemaElement::builder()
+                .attribute_name("id")
+                .key_type(aws_sdk_dynamodb::types::KeyType::Hash)
+                .build()
+                .unwrap(),
+        )
+        .attribute_definitions(
+            aws_sdk_dynamodb::types::AttributeDefinition::builder()
+                .attribute_name("id")
+                .attribute_type(aws_sdk_dynamodb::types::ScalarAttributeType::S)
+                .build()
+                .unwrap(),
+        )
+        .billing_mode(aws_sdk_dynamodb::types::BillingMode::PayPerRequest)
+        .send()
+        .await
+        .unwrap();
+}
+
+#[rune::function(instance)]
+pub async fn dynamo_put_item(ctx: Ref<Context>, table_name: Ref<str>, id: Ref<str>, data: Ref<str>) {
+    let client = ctx.dynamo_client.as_ref().unwrap();
+    
+    client
+        .put_item()
+        .table_name(table_name.deref())
+        .item("id", aws_sdk_dynamodb::types::AttributeValue::S(id.to_string()))
+        .item("data", aws_sdk_dynamodb::types::AttributeValue::S(data.to_string()))
+        .send()
+        .await
+        .unwrap();
+}
+
+#[rune::function(instance)]
+pub async fn dynamo_get_item(ctx: Ref<Context>, table_name: Ref<str>, id: Ref<str>) -> String {
+    let client = ctx.dynamo_client.as_ref().unwrap();
+    
+    let result = client
+        .get_item()
+        .table_name(table_name.deref())
+        .key("id", aws_sdk_dynamodb::types::AttributeValue::S(id.to_string()))
+        .send()
+        .await
+        .unwrap();
+    
+    if let Some(item) = result.item {
+        if let Some(aws_sdk_dynamodb::types::AttributeValue::S(data)) = item.get("data") {
+            return data.clone();
+        }
+    }
+    
+    String::new()
+}
