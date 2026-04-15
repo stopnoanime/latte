@@ -7,15 +7,15 @@ use crate::scripting::retry_error::handle_retry_error;
 
 use super::alternator_error::{AlternatorError, AlternatorErrorKind};
 use super::context::Context;
+use super::driver::client::Waiters;
+use super::driver::types::{
+    AttributeDefinition, DeleteRequest, KeySchemaElement, KeyType, KeysAndAttributes, PutRequest,
+    ScalarAttributeType, WriteRequest,
+};
 use super::types::{
     alternator_map_to_rune_object, hashmap_to_rune_object, rune_object_to_alternator_map,
 };
 use super::types::{BSET_KEY, NSET_KEY, SSET_KEY};
-use aws_sdk_dynamodb::client::Waiters;
-use aws_sdk_dynamodb::types::{
-    AttributeDefinition, DeleteRequest, KeySchemaElement, KeyType, KeysAndAttributes, PutRequest,
-    ScalarAttributeType, WriteRequest,
-};
 use rune::runtime::{Object, Ref, VmResult};
 use rune::{ToValue, Value};
 use std::cmp::min;
@@ -369,7 +369,7 @@ pub async fn create_table(
     let mut builder = client
         .create_table()
         .table_name(table_name.deref())
-        .billing_mode(aws_sdk_dynamodb::types::BillingMode::PayPerRequest);
+        .billing_mode(super::driver::types::BillingMode::PayPerRequest);
 
     builder = builder.key_schema(
         KeySchemaElement::builder()
