@@ -23,52 +23,71 @@ df['req_header_mb'] = df['req_header_bytes'] / (1024 * 1024)
 df['req_total_mb'] = df['req_total_bytes'] / (1024 * 1024)
 
 df_headers = df[df['config_name'].isin(['strip', 'no-strip'])]
-df_off_default = df[df['config_name'].isin(['off', 'default'])]
+df_compression = df[df['config_name'].isin(['off', 'default'])]
 
 sns.set_theme(style="whitegrid")
+base_filename = os.path.splitext(args.csv_file)[0]
 
-fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+fig1, axes1 = plt.subplots(1, 2, figsize=(12, 6))
 
 sns.barplot(
     data=df_headers,
     x='config_name',
     y='req_header_mb',
-    ax=axes[0],
+    ax=axes1[0],
     order=['no-strip', 'strip'],
     hue='config_name',
 )
-axes[0].set_title('Header Size Comparison')
-axes[0].set_xlabel('Header Stripping Configuration')
-axes[0].set_ylabel('Total Request Header Size (MB)')
+axes1[0].set_title('Header Size Comparison')
+axes1[0].set_xlabel('Header Stripping Configuration')
+axes1[0].set_ylabel('Total Request Header Size (MB)')
 
 sns.barplot(
-    data=df_off_default,
-    x='config_name',
-    y='req_total_mb',
-    ax=axes[1],
-    order=['off', 'default'],
-    hue='config_name',
-)
-axes[1].set_title('Request Size Comparison')
-axes[1].set_xlabel('Compression Configuration')
-axes[1].set_ylabel('Total Request Size (MB)')
-
-sns.barplot(
-    data=df_off_default,
+    data=df_headers,
     x='config_name',
     y='throughput',
-    ax=axes[2],
+    ax=axes1[1],
+    order=['no-strip', 'strip'],
+    hue='config_name',
+)
+axes1[1].set_title('Throughput Comparison')
+axes1[1].set_xlabel('Header Stripping Configuration')
+axes1[1].set_ylabel('Throughput (ops/sec)')
+
+fig1.tight_layout()
+out_headers = base_filename + '_headers_plot.png'
+fig1.savefig(out_headers, dpi=300)
+print(f"Saved header charts to {out_headers}")
+
+fig2, axes2 = plt.subplots(1, 2, figsize=(12, 6))
+
+sns.barplot(
+    data=df_compression,
+    x='config_name',
+    y='req_total_mb',
+    ax=axes2[0],
     order=['off', 'default'],
     hue='config_name',
 )
-axes[2].set_title('Throughput Comparison')
-axes[2].set_xlabel('Compression Configuration')
-axes[2].set_ylabel('Throughput (ops/sec)')
+axes2[0].set_title('Request Size Comparison')
+axes2[0].set_xlabel('Compression Configuration')
+axes2[0].set_ylabel('Total Request Size (MB)')
 
-plt.tight_layout()
+sns.barplot(
+    data=df_compression,
+    x='config_name',
+    y='throughput',
+    ax=axes2[1],
+    order=['off', 'default'],
+    hue='config_name',
+)
+axes2[1].set_title('Throughput Comparison')
+axes2[1].set_xlabel('Compression Configuration')
+axes2[1].set_ylabel('Throughput (ops/sec)')
 
-output_filename = os.path.splitext(args.csv_file)[0] + '_plot.png'
-plt.savefig(output_filename, dpi=300)
-print(f"Saved charts to {output_filename}")
+fig2.tight_layout()
+out_compression = base_filename + '_compression_plot.png'
+fig2.savefig(out_compression, dpi=300)
+print(f"Saved compression charts to {out_compression}")
 
 plt.show()
