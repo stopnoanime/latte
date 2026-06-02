@@ -25,7 +25,7 @@ df['req_total_mb'] = df['req_total_bytes'] / (1024 * 1024)
 df_headers = df[df['config_name'].isin(['strip', 'no-strip'])]
 df_compression = df[df['config_name'].isin(['off', 'default'])]
 
-sns.set_theme(style="whitegrid")
+sns.set_theme(style="whitegrid", font_scale=1.2)
 base_filename = os.path.splitext(args.csv_file)[0]
 
 fig1, axes1 = plt.subplots(1, 2, figsize=(12, 6))
